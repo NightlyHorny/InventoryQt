@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton, QLabel, QTableWidget, QTableWidgetItem, QFileDialog, QHBoxLayout, QSplitter, QSizePolicy, QAbstractItemView, QHeaderView, QTextEdit, QListWidget, QListWidgetItem, QSpacerItem, QLineEdit, QComboBox, QSpinBox, QMenu
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton, QLabel, QTableWidget, QTableWidgetItem, QFileDialog, QHBoxLayout, QSplitter, QSizePolicy, QAbstractItemView, QHeaderView, QTextEdit, QListWidget, QListWidgetItem, QSpacerItem, QComboBox, QSpinBox, QMenu
 from PyQt6.QtGui import QPixmap, QIcon, QAction
 from PyQt6.QtCore import Qt, QSize  
 import sys
@@ -99,32 +99,46 @@ class MainWindow(QMainWindow):
 
     def load_from_json(self):
         try:
-            with open('productos.json', 'r') as file:
+            with open('product.json', 'r') as file:
                 data = json.load(file)
                 self.populate_table(data)
         except FileNotFoundError:
-            print("File 'productos.json' not found.")
+            print("File 'product.json' not found.")
             # Handle file not found error as needed
 
         # Load notes data and update table
         self.load_notes_from_json()
+        self.load_additional_notes_from_json()  # Load additional notes
         self.update_table_with_notes()
 
     def load_notes_from_json(self):
         try:
-            with open('notas.json', 'r') as file:
+            with open('unitsTable.json', 'r') as file:
                 self.notes_data = json.load(file)
         except FileNotFoundError:
             self.notes_data = {}
 
+    def load_additional_notes_from_json(self):
+        try:
+            with open('additionalNotes.json', 'r') as file:
+                additional_notes = json.load(file)
+                self.notes_text.setPlainText(additional_notes.get('additional_notes', ''))
+        except FileNotFoundError:
+            pass
+
     def save_to_json(self):
         data = self.collect_data_from_table()
-        with open('productos.json', 'w') as file:
+        with open('product.json', 'w') as file:
             json.dump(data, file, indent=4)
 
     def save_notes_to_json(self):
-        with open('notas.json', 'w') as file:
+        with open('unitsTable.json', 'w') as file:
             json.dump(self.notes_data, file, indent=4)
+
+    def save_additional_notes_to_json(self):
+        additional_notes = {'additional_notes': self.notes_text.toPlainText()}
+        with open('additionalNotes.json', 'w') as file:
+            json.dump(additional_notes, file, indent=4)
 
     def populate_table(self, data):
         self.table.setRowCount(len(data))
@@ -236,7 +250,7 @@ class MainWindow(QMainWindow):
 
     def update_image_and_notes_from_selection(self):
         selected_row = self.table.currentRow()
-        if selected_row >= 0:
+        if (selected_row >= 0):
             image_path = self.table.cellWidget(selected_row, 2).layout().itemAt(0).widget().text()
             if os.path.exists(image_path):
                 pixmap = QPixmap(image_path)
@@ -251,9 +265,7 @@ class MainWindow(QMainWindow):
 
         if product_name:
             self.notes_data[product_name] = self.notes_data.get(product_name, 0) + quantity
-
             self.update_notes_list_widget()
-            self.notes_text.clear()
 
     def update_notes_list_widget(self):
         self.notes_list_widget.clear()
@@ -302,6 +314,7 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         self.save_to_json()
         self.save_notes_to_json()
+        self.save_additional_notes_to_json()
         event.accept()
 
 

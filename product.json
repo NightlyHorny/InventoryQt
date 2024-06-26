@@ -5,14 +5,14 @@
         "imagen": "images/multimetro.jpg"
     },
     {
-        "nombre": "osciloscopio",
+        "nombre": "Osciloscopio",
         "unidades": "100",
         "imagen": "images/osciloscopio.jpg"
     },
     {
-        "nombre": "Nuevo Producto",
-        "unidades": "0",
-        "imagen": ""
+        "nombre": "Fuente de voltaje",
+        "unidades": "10",
+        "imagen": "/home/nightly/Descargas/images.jpg"
     },
     {
         "nombre": "Nuevo Producto",

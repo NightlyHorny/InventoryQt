@@ -1,7 +1,6 @@
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton, QLabel, QTableWidget, QTableWidgetItem, QFileDialog, QHBoxLayout, QSplitter, QSizePolicy, QAbstractItemView, QHeaderView, QTextEdit, QListWidget, QListWidgetItem, QSpacerItem, QLineEdit, QComboBox, QSpinBox, QMenu
 from PyQt6.QtGui import QPixmap, QIcon, QAction
 from PyQt6.QtCore import Qt, QSize  
-from shutil import copyfile
 import sys
 import json
 import os
@@ -25,8 +24,8 @@ class MainWindow(QMainWindow):
 
         # Table to display products
         self.table = QTableWidget()
-        self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(['Nombre', 'Unidades', 'Imagen', 'Unidades Máximas'])
+        self.table.setColumnCount(3)
+        self.table.setHorizontalHeaderLabels(['Nombre', 'Unidades', 'Imagen'])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
 
@@ -133,11 +132,9 @@ class MainWindow(QMainWindow):
             nombre = product.get('nombre', '')
             unidades = product.get('unidades', 0)
             imagen = product.get('imagen', '')
-            unidades_maximas = product.get('unidades_maximas', 0)
 
             self.table.setItem(row, 0, QTableWidgetItem(nombre))
             self.table.setItem(row, 1, QTableWidgetItem(str(unidades)))
-            self.table.setItem(row, 3, QTableWidgetItem(str(unidades_maximas)))
 
             # Set row height
             self.table.setRowHeight(row, 50)
@@ -180,25 +177,18 @@ class MainWindow(QMainWindow):
             nombre_item = self.table.item(row, 0)
             unidades_item = self.table.item(row, 1)
             ruta_widget = self.table.cellWidget(row, 2)
-            unidades_maximas_item = self.table.item(row, 3)
 
-            if nombre_item and unidades_item and ruta_widget and unidades_maximas_item:
+            if nombre_item and unidades_item and ruta_widget:
                 nombre = nombre_item.text()
                 unidades = unidades_item.text()
                 ruta_layout = ruta_widget.layout() if ruta_widget else None
                 ruta_label = ruta_layout.itemAt(0).widget() if ruta_layout and ruta_layout.itemAt(0) else None
                 imagen = ruta_label.text() if isinstance(ruta_label, QLabel) else ''
-                unidades_maximas = unidades_maximas_item.text()
-
-                # Check if unidades exceed unidades_maximas
-                if int(unidades) > int(unidades_maximas):
-                    unidades = unidades_maximas_item.text()
 
                 product = {
                     'nombre': nombre,
                     'unidades': unidades,
-                    'imagen': imagen,
-                    'unidades_maximas': unidades_maximas
+                    'imagen': imagen
                 }
                 data.append(product)
 
@@ -210,7 +200,6 @@ class MainWindow(QMainWindow):
 
         self.table.setItem(row, 0, QTableWidgetItem('Nuevo Producto'))
         self.table.setItem(row, 1, QTableWidgetItem('0'))
-        self.table.setItem(row, 3, QTableWidgetItem('0'))
 
         change_image_button = QPushButton()
         change_image_button.setIcon(QIcon('images/change_icon.png'))
@@ -234,194 +223,90 @@ class MainWindow(QMainWindow):
         self.update_product_combo_box()
 
     def select_image(self, row):
-        filename, _ = QFileDialog.getOpenFileName(self, 'Seleccionar Imagen', '', 'Archivos de Imagen (*.jpg *.png)')
+        filename, _ = QFileDialog.getOpenFileName(self, 'Seleccionar imagen', '', 'Image files (*.jpg *.gif *.png)')
         if filename:
-            # Show selected image in QLabel
-            pixmap = QPixmap(filename)
-            pixmap = pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-            self.image_display_label.setPixmap(pixmap)
-            self.image_display_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-            # Update image path in the table cell widget
-            image_widget = self.table.cellWidget(row, 2)
-            image_label = image_widget.layout().itemAt(0).widget() if image_widget else None
-            if image_label and isinstance(image_label, QLabel):
-                image_label.setText(filename)  # Update the QLabel with the new image path
-            else:
-                # Create a new label if none exists
-                image_label = QLabel(filename)
-                image_layout = QHBoxLayout()
-                image_layout.addWidget(image_label)
-
-                # Spacer item to add space between image_label and change_image_button
-                spacer_item = QSpacerItem(20, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-                image_layout.addItem(spacer_item)
-
-                # Recreate change_image_button
-                change_image_button = QPushButton()
-                change_image_button.setIcon(QIcon('images/change_icon.png'))
-                change_image_button.setFixedSize(20, 20)  # Set button size
-                change_image_button.setIconSize(QSize(20, 20))  # Adjust icon size to button size
-                change_image_button.clicked.connect(lambda checked, row=row: self.select_image(row))
-                image_layout.addWidget(change_image_button)
-
-                image_widget.setLayout(image_layout)
-                self.table.setCellWidget(row, 2, image_widget)
-
-            # Guardar la imagen en la carpeta images
-            basename = os.path.basename(filename)
-            self.table.cellWidget(row, 2).layout().itemAt(0).widget().setText(f"images/{basename}")
-            copyfile(filename, f"images/{basename}")
-
-    def add_product_to_notes(self):
-        product_name = self.product_combo_box.currentText()
-        quantity = self.quantity_spin_box.value()
-
-        # Find the corresponding row in the table
-        product_row = None
-        for row in range(self.table.rowCount()):
-            item = self.table.item(row, 0)
-            if item and item.text() == product_name:
-                product_row = row
-                break
-
-        if product_row is not None:
-            unidades_item = self.table.item(product_row, 1)
-            unidades_maximas_item = self.table.item(product_row, 3)
-
-            if unidades_item and unidades_maximas_item:
-                unidades_disponibles = int(unidades_item.text())
-                unidades_maximas = int(unidades_maximas_item.text())
-
-                if quantity <= unidades_disponibles and quantity <= unidades_maximas:
-                    # Update or add product in notes_data
-                    if product_name in self.notes_data:
-                        if self.notes_data[product_name] + quantity <= unidades_maximas:
-                            self.notes_data[product_name] += quantity
-                        else:
-                            self.notes_data[product_name] = unidades_maximas
-                    else:
-                        self.notes_data[product_name] = min(quantity, unidades_maximas)
-
-                    # Update the notes_list_widget
-                    self.update_notes_list_widget()
-
-                    # Update table with remaining quantities
-                    self.update_table_with_notes()
-
-                else:
-                    print(f"La cantidad total no puede exceder las unidades disponibles ({unidades_disponibles}) ni las unidades máximas ({unidades_maximas}).")
-            else:
-                print("No se pudo encontrar las unidades disponibles o máximas.")
-        else:
-            print("No se pudo encontrar el producto en la tabla.")
-
-    def update_notes_list_widget(self):
-        self.notes_list_widget.clear()
-        for product, quantity in self.notes_data.items():
-            item = QListWidgetItem(f"{product}: {quantity}")
-            self.notes_list_widget.addItem(item)
-
-        # Save notes data to JSON file
-        self.save_notes_to_json()
-
-    def update_image_and_notes_from_selection(self):
-        selected_items = self.table.selectedItems()
-        if selected_items:
-            # Update image display
-            row = selected_items[0].row()
-            ruta_widget = self.table.cellWidget(row, 2)
-            ruta_layout = ruta_widget.layout() if ruta_widget else None
-            ruta_label = ruta_layout.itemAt(0).widget() if ruta_layout and ruta_layout.itemAt(0) else None
-            image_path = ruta_label.text() if isinstance(ruta_label, QLabel) else ''
-
-            if os.path.exists(image_path):
-                pixmap = QPixmap(image_path)
-                pixmap = pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-                self.image_display_label.setPixmap(pixmap)
-                self.image_display_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            image_label = self.table.cellWidget(row, 2).layout().itemAt(0).widget()
+            image_label.setText(filename)
 
     def update_product_combo_box(self):
         self.product_combo_box.clear()
         for row in range(self.table.rowCount()):
-            nombre_item = self.table.item(row, 0)
-            if nombre_item:
-                self.product_combo_box.addItem(nombre_item.text())
+            product_name = self.table.item(row, 0).text()
+            self.product_combo_box.addItem(product_name)
+
+    def update_image_and_notes_from_selection(self):
+        selected_row = self.table.currentRow()
+        if selected_row >= 0:
+            image_path = self.table.cellWidget(selected_row, 2).layout().itemAt(0).widget().text()
+            if os.path.exists(image_path):
+                pixmap = QPixmap(image_path)
+                self.image_display_label.setPixmap(pixmap.scaled(self.image_display_label.size(), Qt.AspectRatioMode.KeepAspectRatio))
+            else:
+                self.image_display_label.clear()
+
+    def add_product_to_notes(self):
+        product_name = self.product_combo_box.currentText()
+        quantity = self.quantity_spin_box.value()
+        note = self.notes_text.toPlainText()
+
+        if product_name:
+            self.notes_data[product_name] = self.notes_data.get(product_name, 0) + quantity
+
+            self.update_notes_list_widget()
+            self.notes_text.clear()
+
+    def update_notes_list_widget(self):
+        self.notes_list_widget.clear()
+        for product_name, quantity in self.notes_data.items():
+            item = QListWidgetItem(f"{product_name}: {quantity}")
+            self.notes_list_widget.addItem(item)
+
+        self.update_table_with_notes()
 
     def update_table_with_notes(self):
+        quantity = self.quantity_spin_box.value()
         for row in range(self.table.rowCount()):
-            nombre_item = self.table.item(row, 0)
-            unidades_item = self.table.item(row, 1)
-            unidades_maximas_item = self.table.item(row, 3)
-
-            if nombre_item and unidades_item and unidades_maximas_item:
-                nombre = nombre_item.text()
-                unidades_iniciales = int(unidades_item.text())
-                unidades_maximas = int(unidades_maximas_item.text())
-
-                if nombre in self.notes_data:
-                    quantity_in_notes = self.notes_data[nombre]
-                    unidades_restantes = unidades_iniciales - quantity_in_notes
-                    if unidades_restantes > unidades_maximas:
-                        unidades_restantes = unidades_maximas
-                    self.table.item(row, 1).setText(str(unidades_restantes))
-                else:
-                    self.table.item(row, 1).setText(str(unidades_iniciales))
-
-    def closeEvent(self, event):
-        # Save data to JSON files before closing
-        self.save_to_json()
-        self.save_notes_to_json()
-        event.accept()
+            product_name = self.table.item(row, 0).text()
+            if product_name in self.notes_data:
+                unidades_iniciales = int(self.table.item(row, 1).text())
+                unidades_restantes = unidades_iniciales - quantity
+                self.table.item(row, 1).setText(str(unidades_restantes))
 
     def show_list_widget_context_menu(self, position):
-        menu = QMenu()
-        delete_action = QAction('Eliminar', self)
-        delete_action.triggered.connect(self.delete_selected_note)
-        menu.addAction(delete_action)
-        menu.exec(self.notes_list_widget.viewport().mapToGlobal(position))
+        menu = QMenu(self)
+        remove_action = QAction('Eliminar', self)
+        remove_action.triggered.connect(self.remove_selected_note)
+        menu.addAction(remove_action)
+        menu.exec(self.notes_list_widget.mapToGlobal(position))
 
-    def delete_selected_note(self):
+    def remove_selected_note(self):
         selected_items = self.notes_list_widget.selectedItems()
         if not selected_items:
             return
 
         for item in selected_items:
-            product_info = item.text().split(':')
-            product_name = product_info[0].strip()
-            quantity = int(product_info[1].strip())
-
-            # Remove item from QListWidget
-            self.notes_list_widget.takeItem(self.notes_list_widget.row(item))
-
-            # Remove from notes_data
+            product_name = item.text().split(":")[0]
+            quantity = int(item.text().split(":")[1])
             if product_name in self.notes_data:
                 del self.notes_data[product_name]
 
-            # Update table with restored quantities
-            for row in range(self.table.rowCount()):
-                nombre_item = self.table.item(row, 0)
-                unidades_item = self.table.item(row, 1)
-                unidades_maximas_item = self.table.item(row, 3)
-
-                if nombre_item and unidades_item and unidades_maximas_item:
-                    nombre = nombre_item.text()
-                    if nombre == product_name:
-                        unidades_iniciales = int(unidades_item.text())
-                        unidades_maximas = int(unidades_maximas_item.text())
-                        unidades_restantes = min(unidades_iniciales + quantity, unidades_maximas)
+                # Update units in the table
+                for row in range(self.table.rowCount()):
+                    if self.table.item(row, 0).text() == product_name:
+                        unidades_restantes = int(self.table.item(row, 1).text()) + quantity
                         self.table.item(row, 1).setText(str(unidades_restantes))
+                        break
 
-        # Save notes data to JSON file
+        self.update_notes_list_widget()
+
+    def closeEvent(self, event):
+        self.save_to_json()
         self.save_notes_to_json()
+        event.accept()
 
 
-def main():
+if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
-
-
-if __name__ == '__main__':
-    main()

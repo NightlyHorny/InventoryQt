@@ -1,13 +1,18 @@
 [
     {
         "nombre": "Multimetro",
-        "unidades": "85",
+        "unidades": "100",
         "imagen": "images/multimetro.jpg"
     },
     {
         "nombre": "osciloscopio",
         "unidades": "100",
         "imagen": "images/osciloscopio.jpg"
+    },
+    {
+        "nombre": "Nuevo Producto",
+        "unidades": "0",
+        "imagen": ""
     },
     {
         "nombre": "Nuevo Producto",

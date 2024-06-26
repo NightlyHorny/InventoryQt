@@ -1,7 +1,7 @@
 [
     {
         "nombre": "Multimetro",
-        "unidades": "100",
+        "unidades": "97",
         "imagen": "images/multimetro.jpg"
     },
     {
@@ -12,7 +12,7 @@
     {
         "nombre": "Fuente de voltaje",
         "unidades": "10",
-        "imagen": "/home/nightly/Descargas/images.jpg"
+        "imagen": "images/Fuente de voltaje.png"
     },
     {
         "nombre": "Nuevo Producto",

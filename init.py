@@ -4,6 +4,7 @@ from PyQt6.QtCore import Qt, QSize
 import sys
 import json
 import os
+import shutil
 
 
 class MainWindow(QMainWindow):
@@ -239,8 +240,11 @@ class MainWindow(QMainWindow):
     def select_image(self, row):
         filename, _ = QFileDialog.getOpenFileName(self, 'Seleccionar imagen', '', 'Image files (*.jpg *.gif *.png)')
         if filename:
+            product_name = self.table.item(row, 0).text()
+            new_filename = f"images/{product_name}.png"  # Save image as PNG for consistency
+            shutil.copyfile(filename, new_filename)  # Copy and rename the image file
             image_label = self.table.cellWidget(row, 2).layout().itemAt(0).widget()
-            image_label.setText(filename)
+            image_label.setText(new_filename)
 
     def update_product_combo_box(self):
         self.product_combo_box.clear()

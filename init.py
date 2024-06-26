@@ -29,6 +29,10 @@ class MainWindow(QMainWindow):
         self.table.setHorizontalHeaderLabels(['Nombre', 'Unidades', 'Imagen'])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        # Configurar la política de menú contextual para la tabla
+        self.table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.table.customContextMenuRequested.connect(self.show_table_context_menu)
+
 
         self.splitter.addWidget(self.table)
 
@@ -236,6 +240,41 @@ class MainWindow(QMainWindow):
         self.table.setCellWidget(row, 2, image_widget)
 
         self.update_product_combo_box()
+
+    def remove_selected_product(self):
+        selected_row = self.table.currentRow()
+        if selected_row >= 0:
+            product_name = self.table.item(selected_row, 0).text()
+            
+            # Eliminar el producto del combo box
+            index = self.product_combo_box.findText(product_name)
+            if index >= 0:
+                self.product_combo_box.removeItem(index)
+            
+            # Eliminar el producto de notes_data si existe
+            if product_name in self.notes_data:
+                del self.notes_data[product_name]
+
+            # Eliminar la fila de la tabla
+            self.table.removeRow(selected_row)
+            
+            # Guardar los cambios
+            self.save_to_json()
+            self.save_notes_to_json()
+            
+            # Actualizar la lista de notas
+            self.update_notes_list_widget()
+
+    def show_table_context_menu(self, position):
+        index = self.table.indexAt(position)
+        if not index.isValid():
+            return  # No hay fila en la posición del clic, no mostrar el menú
+
+        menu = QMenu(self)
+        remove_action = QAction('Eliminar Producto', self)
+        remove_action.triggered.connect(self.remove_selected_product)
+        menu.addAction(remove_action)
+        menu.exec(self.table.viewport().mapToGlobal(position))
 
     def select_image(self, row):
         filename, _ = QFileDialog.getOpenFileName(self, 'Seleccionar imagen', '', 'Image files (*.jpg *.gif *.png)')

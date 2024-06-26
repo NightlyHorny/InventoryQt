@@ -1,7 +1,7 @@
 [
     {
         "nombre": "Multimetro",
-        "unidades": "97",
+        "unidades": "100",
         "imagen": "images/multimetro.jpg"
     },
     {
@@ -11,57 +11,17 @@
     },
     {
         "nombre": "Fuente de voltaje",
-        "unidades": "10",
+        "unidades": "20",
         "imagen": "images/Fuente de voltaje.png"
     },
     {
-        "nombre": "Nuevo Producto",
-        "unidades": "0",
-        "imagen": ""
+        "nombre": "Vernier Digital",
+        "unidades": "20",
+        "imagen": "images/Vernier Digital.png"
     },
     {
-        "nombre": "Nuevo Producto",
-        "unidades": "0",
-        "imagen": ""
-    },
-    {
-        "nombre": "Nuevo Producto",
-        "unidades": "0",
-        "imagen": ""
-    },
-    {
-        "nombre": "Nuevo Producto",
-        "unidades": "0",
-        "imagen": ""
-    },
-    {
-        "nombre": "Nuevo Producto",
-        "unidades": "0",
-        "imagen": ""
-    },
-    {
-        "nombre": "Nuevo Producto",
-        "unidades": "0",
-        "imagen": ""
-    },
-    {
-        "nombre": "Nuevo Producto",
-        "unidades": "0",
-        "imagen": ""
-    },
-    {
-        "nombre": "Nuevo Producto",
-        "unidades": "0",
-        "imagen": ""
-    },
-    {
-        "nombre": "Nuevo Producto",
-        "unidades": "0",
-        "imagen": ""
-    },
-    {
-        "nombre": "Nuevo Producto",
-        "unidades": "0",
-        "imagen": ""
+        "nombre": "Viernier Analogo",
+        "unidades": "20",
+        "imagen": "images/Viernier Analogo.png"
     }
 ]
